@@ -1,9 +1,9 @@
-##Data Analysis of SMR files
+## Data Analysis of SMR files
 **In progress**
 
 The goal is to eventually correlate the cross-rendition average of syllable pitch with their premotor activity.
 
-####Acknowledgements
+#### Acknowledgements
 - Eduarda Centeno
 - Roman Ursu
 - Arthur Leblois
