@@ -1,0 +1,12 @@
+predict:
+  todo_list:
+    - #1
+      bird_ID: Bird0
+      model_meta_file : /Users/rsankar/Desktop/OCNC/OCNC_Project/Workplace/Testing_Syllable_autolabelling/HVC_out/select_output_190703_144905/svm_C1_gamma0.001/svm_200samples_replicate1.meta
+      file_format: npy
+      data_dirs:
+        - /Users/rsankar/Desktop/OCNC/OCNC_Project/Workplace/Testing_Syllable_autolabelling/Test_Songs
+        
+      output_dir: /Users/rsankar/Desktop/OCNC/OCNC_Project/Workplace/Testing_Syllable_autolabelling/HVC_out/
+      predict_proba: True
+      convert: txt
