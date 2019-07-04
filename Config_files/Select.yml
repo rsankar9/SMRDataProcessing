@@ -19,7 +19,7 @@ select:
     
     todo_list:
        -
-        feature_file: /Users/rsankar/Desktop/OCNC/OCNC_Project/Workplace/Testing_Syllable_autolabelling/HVC_out/extract_output_190703_144330/summary_feature_file_created_190703_144408
+        feature_file: /Users/rsankar/Desktop/OCNC/OCNC_Project/Workplace/Syllable_autolabelling/HVC_out/extract_output_190703_203420/summary_feature_file_created_190703_203433
 
-        output_dir: /Users/rsankar/Desktop/OCNC/OCNC_Project/Workplace/Testing_Syllable_autolabelling/HVC_out
+        output_dir: /Users/rsankar/Desktop/OCNC/OCNC_Project/Workplace/Syllable_autolabelling/HVC_out
 
