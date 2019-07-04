@@ -4,12 +4,13 @@
 The goal is to eventually correlate the cross-rendition average of syllable pitch with their premotor activity.
 
 ####Acknowledgements
-Eduarda Centeno
-Roman Ursu
-Arthur Leblois
-For HVC - automatic syllable labeller - The Sober Lab at Emory University
+- Eduarda Centeno
+- Roman Ursu
+- Arthur Leblois
+- For HVC - automatic syllable labeller - The Sober Lab at Emory University
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1475481.svg)](https://doi.org/10.5281/zenodo.1475481)
 
+Python 3.7 is required, unless specified otherwise.
 
 ### Auxilliary_support.py
 
@@ -35,3 +36,8 @@ or
 - Ensure this folder has a folder called Raw_songs with the songfiles (.txt) to be labelled.
 - Ensure this folder doesn't have a clashing Annotations, Clean_songs or Noise_songs folder (as some files will be moved/created in these folders).
 - To change the threshold, rec_system, or other parameters, you'll have to directly change the code.
+
+### Slicing_Songfile.py
+
+This scripts extracts the song from the smr file and splits it into smaller chunks (txt), for ease in further processing.
+To run: `python Slicing_Songfile.py path_to_file.smr`
