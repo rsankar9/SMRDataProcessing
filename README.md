@@ -45,6 +45,19 @@ Python 3.7 is required, unless specified otherwise.
 - Ensure the segmenting parameters are correct.
 - To run: `python Detect_syllables.py path_to_parent_folder`
 
+#### Script: collect_durations.py
+
+- Collects data and stats on duration of each syllable across renditions and records in a json file.
+- Verify sample frequency.
+- Give argument to parent folder of Clean_songs and Annotations folders to run: `python collect_durations.py path_to_parent_folder`
+
+#### Script: collect_pitch.py
+
+- This script detects pitches of the syllables present in annotated files.
+- Data and confidence measures are stored in a json file.
+- Verify parameters: sample frequency, syllable window, chunk_size, varying_window_dur, etc.
+- Give argument to parent folder of Clean_songs and Annotations folders to run: `python collect_pitch.py path_to_parent_folder`
+
 #### Folder: HVC\_config\_files
 
 - Folder with sample config files to run HVC syllable labeler.
