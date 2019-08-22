@@ -193,15 +193,26 @@ def getinfo(file):
 
 
 def getsong(file):
+    """
+    Botched up. Needed to modify the matrix to extract song.
+    Was working earlier with just commented sections.
+    """
     data, data_seg = read(file)
-    for i in range(len(data_seg.analogsignals)):
-        if data_seg.analogsignals[i].name == 'Channel bundle (CSC5) ':
+#    for i in range(len(data_seg.analogsignals)):
 #        if data_seg.analogsignals[i].name == 'Channel bundle (RAW 009) ':
-            song=data_seg.analogsignals[i].as_array()
+#            song=data_seg.analogsignals[0][i].as_array()
+    s = data_seg.analogsignals[0].name.split('(')[1].split(')')[0].split(',')          # What happened? Was working without this earlier. No clue what changed.
+    analog_signals = np.array([data_seg.analogsignals[0]])
+    analog_signals = analog_signals.transpose()
+    
+    for i in range(len(s)):
+        if s[i] == 'CSC5':
+            song = analog_signals[i]
         else:
             continue
+        print('Saving song to ', file[:-4], "_songfile.npy")
         np.save(file[:-4]+"_songfile", song)
-## 
+##
 
 # This  function will get the analogical signals and the spiketrains from the .smr file and return them in the end as arrays.
 def getarrays(file): #Transforms analog signals into arrays inside list

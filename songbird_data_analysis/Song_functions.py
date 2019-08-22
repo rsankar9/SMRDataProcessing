@@ -1,46 +1,38 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-    This scripts plots the song in an npy/txt file, in an interactive manner.
-    Use line 228-229 to select portions of the file.
-    Not meant to be a generic code for public use.
-    Just an auxilliary file to quickly visualise the song and adjust the syllable segmenting parameters.
-    Parameters should be adjusted per bird.
-    Requires Python 3.7.3 and other packages.
-    
-    To run: python Auxilliary_support.py path_to_npy_file.npy
-    or
-    python Auxilliary_support.py path_to_txt_file.txt
+Created on Thu Jul 25 16:33:13 2019
+
+@author: rsankar
 """
 
-
-##Auxiliary code to plot amplitude of signal and smoothed amplitude
+"""
+Compilation of functions used by Roman to segment songs
+"""
 import numpy as np
 import scipy as sp
-from scipy.io import loadmat
 import scipy.signal
+from scipy.io import loadmat
 from scipy.io import wavfile
-import matplotlib as mplt
-import matplotlib.pyplot as plt
-import os
-import glob
-from threading import Thread
-import sys
 
-window =('hamming')
-overlap = 64
-nperseg = 1024
-noverlap = nperseg-overlap
-colormap = "jet"
-
-#threshold=2e-9 # for files recorded with Neuralynx
-#threshold=2e-5
-#threshold=2e-10
-threshold=1.25e-9
-min_syl_dur=0.02
-min_silent_dur= 0.003
-smooth_win=10
-
-#rec_system = 'Alpha_omega' # or 'Neuralynx' or 'Other'
-rec_system = 'Neuralynx'
+#Parameters to be used
+#
+#window =('hamming')
+#overlap = 64
+#nperseg = 1024
+#noverlap = nperseg-overlap
+#colormap = "jet"
+#
+##threshold=2e-9 # for files recorded with Neuralynx
+##threshold=2e-5
+##threshold=2e-10
+#threshold=1.25e-9
+#min_syl_dur=0.02
+#min_silent_dur= 0.003
+#smooth_win=10
+#
+##rec_system = 'Alpha_omega' # or 'Neuralynx' or 'Other'
+#rec_system = 'Neuralynx'
 
 def bandpass_filtfilt(rawsong, samp_freq, freq_cutoffs=(500, 10000)):
     """filter song audio with band pass filter, run through filtfilt
@@ -97,6 +89,7 @@ def bandpass_filtfilt(rawsong, samp_freq, freq_cutoffs=(500, 10000)):
     filtsong = scipy.signal.filtfilt(b, a, rawsong, padlen=padlen)
     #filtsong = filter_song(b, a, rawsong)
     return (filtsong)
+
 
 def smooth_data(rawsong, samp_freq, freq_cutoffs=None, smooth_win=10):
     
@@ -214,68 +207,21 @@ def segment_song(amp,
     return onsets, offsets
 
 
-##########
 
-songfile = sys.argv[1]                      # npy file
-base_filename = os.path.basename(songfile)  # Extracts filename
-print(songfile)
-rawsong = np.array([])
-if songfile[-4:] == '.npy':
-    print('npy file')
-    rawsong = np.load(songfile) # Loads file
-elif songfile[-4:] == '.txt':
-    print('txt file')
-    rawsong = np.loadtxt(songfile) # Loads file
-else:
-    raise ValueError("Given path doesn't lead to a song file.")
-    rawsong = np.loadtxt(songfile)
-rawsong = rawsong.astype(float)
-s=rawsong.size
-print('size=',s, 'shape=',rawsong.shape)
-#xi = 10
-#rawsong = rawsong[xi*s//15:(xi+1)*s//15].reshape((xi+1)*s//15-xi*s//15,)     # Splits file according to how much data you want to view
-rawsong = rawsong.flatten()
-
-if rec_system is 'Alpha_omega':
-    fs = 22321.4283
-elif rec_system is 'Neuralynx':
-    fs = 32000
-print('fs:',fs)
-
-amp = smooth_data(rawsong,fs,freq_cutoffs=(1000, 8000))
-
-print('amp:', amp, 'samp_freq:', fs)
-(onsets, offsets) = segment_song(amp,segment_params={'threshold': threshold, 'min_syl_dur': min_syl_dur, 'min_silent_dur': min_silent_dur},samp_freq=fs)    # Detects syllables according to the threshold you set
-shpe = len(onsets)                          # Use this to detect no. of onsets
-
-
-### Building figure
-fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, sharex=True)
-plt.setp(ax1.get_xticklabels(), visible=True)
-plt.setp(ax2.get_xticklabels(), visible=True)
-
-# Plots spectrogram
-(f,t,sp)=scipy.signal.spectrogram(rawsong, fs, window, nperseg, noverlap, mode='complex')
-ax3.imshow(10*np.log10(np.square(abs(sp))), origin="lower", aspect="auto", interpolation="none")
-
-##Plot song signal amplitude
-x_amp=np.arange(len(amp))
-ax1.plot(x_amp*len(t)/x_amp[-1],rawsong)
-ax1.set_xlim([0, len(t)])
-for i in range(0,shpe):
-    ax1.axvline(x=onsets[i]*len(t)/x_amp[-1],color='b')
-    ax1.axvline(x=offsets[i]*len(t)/x_amp[-1],color='r')
-
-##Plot smoothed amplitude of the song
-ax2.plot(x_amp*len(t)/x_amp[-1], amp)
-ax2.set_xlim([0, len(t)])
-ax2.set_ylim([0, 3e-8])
-for i in range(0,shpe):
-    ax2.axvline(x=onsets[i]*len(t)/x_amp[-1])
-    ax2.axvline(x=offsets[i]*len(t)/x_amp[-1],color='r')
-ax2.axhline(y=threshold,color='g')
-#ax2.xaxis.set_tick_params(which='both', labelbottom=True)
-
-plt.show()
-
-
+#Used to circumvent filtfilt if needed. See    bandpass filtfilt function
+def filter_song(b,a,rawsong):
+    filt_len = len(b)
+    rawsong_len = len(rawsong)
+    filtered_song = []
+    extended_rawsong = np.zeros(filt_len+rawsong_len)
+    extended_rawsong[filt_len:len(extended_rawsong)] = rawsong
+    for n in range(0,rawsong_len):
+        result=0
+        local_signal = extended_rawsong[n:(filt_len+n)]
+        local_signal = local_signal[::-1]
+        local_signal = local_signal*b
+        result = np.sum(local_signal)
+        filtered_song.append(result)
+    
+    filtered_song = np.asarray(filtered_song)
+    return filtered_song

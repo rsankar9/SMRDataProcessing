@@ -5,6 +5,7 @@ Created on Mon Jul  8 09:49:10 2019
 
 @author: rsankar
 """
+
 """
 This script detects pitches of the syllables present in annotated files.
 Data and confidence measures are stored in a json file.
@@ -13,20 +14,23 @@ Give argument to parent folder of Clean_songs and Annotations folders to run: py
 """
 
 import numpy as np
-#import matplotlib.pyplot as plt
 import glob
 import sys
 import os
 import json
 
 source_path = sys.argv[1]
-#source_path = "Testing_Pitch/"
-
-syll_set = ['a', 'b', 'c', 'd', 'e', 'f']                                       # Set of syllables considered
+smr_file_name = sys.argv[2]
+stats_file_destination = source_path + '/Analysis/' + smr_file_name[:-4]
+if not os.path.exists(source_path + '/Analysis/'):
+    os.mkdir(source_path + '/Analysis/')
+    
 chunk_size = 120000                                                             # Chunk no. wrt to original smr file
 Fs = 32000                                                                      # Sampling rate
 syll_window = 20 #ms                                                            # Window used for syllable duration from onset
 varying_window_dur = False                                                      # True: Window duration changes acc to syllable duration False: fixed at syll_window
+
+syll_set = ['a', 'b', 'c', 'd', 'e', 'f']                                       # Set of syllables considered
 
 # Function to compute pitch
 def compute_pitch(f, onset, Fs, window=20):
@@ -68,17 +72,18 @@ for label in syll_set:                                                          
     syll_data[label]['pitches'] = []
     syll_data[label]['stats'] = []
 
+annotfiles_list = glob.glob(source_path + '/Annotations/' + '*.txt')
+annotfiles_list.sort()
 
-songfiles_list = glob.glob(source_path + '/Clean_songs_3/*.txt')                  # Gathers song files
-
-for songfile in songfiles_list:
+for annotfile in annotfiles_list:
+    base_filename = os.path.basename(annotfile)[:-4]
+    songfile = source_path + '/Labeled_songs/' + base_filename[:-6] + '.txt'
     print(songfile)
-    base_filename = os.path.basename(songfile)[:-4]
     song = np.loadtxt(songfile)                                                 # Loads songfile
-    annot_file = source_path + '/Annotations_3/' + base_filename + '_annot.txt'
-    annotations = np.loadtxt(annot_file, dtype='|U30')                          # Loads corresponding annotation files
+
+    annotations = np.loadtxt(annotfile, dtype='|U30')                          # Loads corresponding annotation files
     
-    chunk_no = np.int(base_filename.split('_')[-1])
+    chunk_no = np.int(base_filename.split('_')[-2])
     padding = chunk_no * chunk_size                                             # To calculate onset times wrt to original smr file
     
     if annotations.shape == ():                                                 # Songfile with 1 syllable only
@@ -101,10 +106,32 @@ for songfile in songfiles_list:
             syll_data[syll_label]['pitches'].append(syll_pitch)
             syll_data[syll_label]['stats'].append(syll_stats)
 
-if varying_window_dur == True:
-    with open(source_path + 'syll_pitches_data_varying_w.json', 'w') as outfile:                                # Writes data to json file
-        json.dump(syll_data, outfile, indent=4)
+for label in syll_set:
+    if len(syll_data[label]['pitches']) == 0:
+        print(label, 'is missing.')
+        continue
+    syll_data[label]['avg_pitch'] = sum(syll_data[label]['pitches']) / len(syll_data[label]['pitches'])   # Calculates avg
+    syll_data[label]['min_pitch'] = min(syll_data[label]['pitches'])                                      # Calculates min
+    syll_data[label]['max_pitch'] = max(syll_data[label]['pitches']) 
 
-else:
-    with open(source_path + 'syll_pitches_data_fixed_w.json', 'w') as outfile:                                  # Writes data to json file
-        json.dump(syll_data, outfile, indent=4)
+# Store data and stats in npy and json files
+    
+varying_suffix = ''
+if varying_window_dur == True:
+    varying_suffix = '_varying'
+    
+np.save(stats_file_destination + '_pitches_data' + varying_suffix + '.npy', syll_data)
+
+with open(stats_file_destination + '_pitches_data' + varying_suffix + '.json', 'w') as outfile:                           # json file to record pitch data and stats
+    json.dump(syll_data, outfile, indent=4)
+    
+syll_stats = {}
+for label in syll_set:
+    syll_stats[label] = {}
+    syll_stats[label]['avg_pitch'] = syll_data[label]['avg_pitch']
+    syll_stats[label]['min_pitch'] = syll_data[label]['min_pitch']
+    syll_stats[label]['max_pitch'] = syll_data[label]['max_pitch']
+
+with open(stats_file_destination + '_pitches_stats' + varying_suffix + '.json', 'w') as outfile:                          # json file to record only pitch stats
+    json.dump(syll_stats, outfile, indent=4)
+    

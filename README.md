@@ -1,82 +1,16 @@
-## Data Analysis of SMR files
-**In progress**
+##README
 
-The goal is to eventually correlate the cross-rendition average of syllable pitch with their premotor activity.
-
-#### Acknowledgements
-- Eduarda Centeno
-- Roman Ursu
-- Arthur Leblois
-- For HVC - automatic syllable labeller - The Sober Lab at Emory University [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1475481.svg)](https://doi.org/10.5281/zenodo.1475481)
-
-Python 3.7 is required, unless specified otherwise.
-
----
-### Folder: Syllables_processing
-
-#### Script: Auxilliary_support.py
-
-- This scripts plots the song in an npy/txt file, in an interactive manner.
-- Use line 228-229 to select portions of the file.
-- Not meant to be a generic code for public use.
-- Just an auxilliary file to quickly visualise the song and adjust the syllable segmenting parameters.
-- Parameters should be adjusted per bird.
-- Requires Python 3.7.3 and other packages.
-- To run: `python Auxilliary_support.py path_to_npy_file.npy` or `python Auxilliary_support.py path_to_txt_file.txt`.
-
-
-#### Script: Manual_labeling.py
-
-- Give the path to the parent folder of Raw_songs as an argument when you run the python script: `python Manual_labeling.py parent_folder_name`.
-- Ensure this folder has a folder called Raw_songs with the songfiles (.txt) to be labelled.
-- Ensure this folder doesn't have a clashing Annotations, Clean_songs or Noise_songs folder (as some files will be moved/created in these folders).
-- To change the threshold, rec_system, or other parameters, you'll have to directly change the code.
-
-#### Script: Slicing_Songfile.py
-
-- This scripts extracts the song from the smr file and splits it into smaller chunks (txt), for ease in further processing.
-- To run: `python Slicing_Songfile.py path_to_file.smr`.
-
-#### Script: Detect_syllables.py
-
-- Get files from Raw_songs folder.
-- Detects if it has syllables.
-- If not, the file is moved to Noise_songs folder.
-- Ensure the segmenting parameters are correct.
-- To run: `python Detect_syllables.py path_to_parent_folder`
-
-#### Script: collect_durations.py
-
-- Collects data and stats on duration of each syllable across renditions and records in a json file.
-- Verify sample frequency.
-- Give argument to parent folder of Clean_songs and Annotations folders to run: `python collect_durations.py path_to_parent_folder`
-
-#### Script: collect_pitch.py
-
-- This script detects pitches of the syllables present in annotated files.
-- Data and confidence measures are stored in a json file.
-- Verify parameters: sample frequency, syllable window, chunk_size, varying_window_dur, etc.
-- Give argument to parent folder of Clean_songs and Annotations folders to run: `python collect_pitch.py path_to_parent_folder`
-
-#### Folder: HVC\_config\_files
-
-- Folder with sample config files to run HVC syllable labeler.
-- Path and segmenting parameteres in config files should be updated for each run.
-- To run:
-
-`hvc.extract('Extract.yml')`
-
-`hvc.select('Select.yml')`
-
-`hvc.predict('Predict.yml')`
-
----
-
-### Folder: General_processing
-
-#### Script: functions.py
-
-- Eduarda's code for various processing of smr files.
-- To use, import package. 
-
----
+1. Given: An SMR file.
+2. Checks if neo is able to read the file. ```python testDataFile.py file_name.smr``` This should also extract the songfile.
+3. Use ```Auxilliary_support.py``` to check the thresholds for syllable segmentation.
+4. Use ```Slicing_Songfile.py``` to slice the songfile into smaller chunks.
+5. Use ```Detect_syllables.py``` to remove the chunks that don't contain any syllables.
+6. Use an IDE which allows plots to be rendered outside the window (or the terminal), and run the Manual_labeling.py script to annotate as many songs as required.
+7. Use ```HVC``` to automatically label the rest of the syllables.
+7. Use ```Collect_durations.py``` to collect statistics on syllable durations.
+8. You can use ```Plot_histogram_durations.py``` to plot directly from previously collected durations.
+9. Use ```Collect_pitches.py``` to collect statistics on syllable pitches.
+10. Use ```Plot_histogram_pitches.py``` to plot different analyses on syllable pitches.
+11. Use ```Collect_spikes.py``` to collect statistics on spikes.
+12. Use ```Plot_histogram_spikes.py``` to plot different analyses on spikes.
+13. Use ```Plot_comparison.py``` to plot comparisons between spikes and syllable features.
