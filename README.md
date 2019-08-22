@@ -1,5 +1,20 @@
 ##README
 
+## Data Analysis of SMR files
+**In progress**
+
+The goal is to eventually correlate the cross-rendition average of syllable pitch with their premotor activity.
+
+#### Acknowledgements
+- Eduarda Centeno
+- Roman Ursu
+- Arthur Leblois
+- For HVC - automatic syllable labeller - The Sober Lab at Emory University [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1475481.svg)](https://doi.org/10.5281/zenodo.1475481)
+
+Python 3.7 is required, unless specified otherwise.
+
+---
+
 1. Given: An SMR file.
 2. Checks if neo is able to read the file. ```python testDataFile.py file_name.smr``` This should also extract the songfile.
 3. Use ```Auxilliary_support.py``` to check the thresholds for syllable segmentation.
