@@ -85,11 +85,11 @@ def construct_fft(signal, N, fs):
 def calc_pitch(fft_freq, fft_fine, fs):
     """ Calculate pitch from fine FFT. """
 
-    range_beg = np.abs(fft_freq.real-600/fs).argmin()                               # Detecting pitch only between 600 Hz and 1200 Hz
-    range_end = np.abs(fft_freq.real-1200/fs).argmin()
+    range_beg = (np.abs(fft_freq.real*fs-600)).argmin()                               # Detecting pitch only between 600 Hz and 1200 Hz
+    range_end = (np.abs(fft_freq.real*fs-1200)).argmin()
     # Pitch = frequency at highest energy within a given range.
-    pitch = fft_freq[range_beg + np.argmax(np.abs(fft_fine[range_beg:range_end].real))]     
-    plot_fft(fft_freq, fft_fine, pitch * fs, fs, range_beg, range_end)
+    pitch = fft_freq[range_beg + np.argmax(np.abs(fft_fine[range_beg:range_end].real))]
+    # plot_fft(fft_freq, fft_fine, pitch * fs, fs, range_beg, range_end)
     
     return pitch * fs
 
@@ -98,7 +98,7 @@ def plot_fft(fft_freq, fft_fine, pitch_Hz, fs, range_beg, range_end):
     """ Plots final FFT. """
     
     resolution = np.mean([ fft_freq[i+1].real - fft_freq[i].real for i in range(len(fft_freq)-1) ]) # Finds resolution of FFT
-    print('Resolution:', resolution*fs, 'Hz.')
+    # print('Resolution:', resolution*fs, 'Hz.')
     
     fig2, (ax3) = plt.subplots(nrows=1)
     ax3.set_title('FFT with resolution: ' + str(resolution*fs) + 'Hz.')
@@ -178,7 +178,7 @@ def analyse_pitches(pitches, N, lag):
     
     
 
-N = 256                                                                        # No. of samples considered
+N = 512                                                                        # No. of samples considered
 fs = 32000                                                                     # Sampling rate
 lag = 200                                                                      # Lag w.r.t. syllable onset
 
