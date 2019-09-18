@@ -154,8 +154,7 @@ vector <FFT> construct_fft(vector <double> &signal)	{
 	vector < vector <FFT> > course_ffts;															// To store coarse FFTs of N, N-2, ... samples each
 	vector <FFT> fine_fft;																			
 	
-	cout<<"Building course FFTs:\n";
-
+    // Building course FFTS
 	int m = 0;																						// Counter for no. of course FFTs, and for no. of samples considered
 	while(m < 20)	{
 		vector <double> sample ( signal.begin(), signal.end()-m );
@@ -163,8 +162,7 @@ vector <FFT> construct_fft(vector <double> &signal)	{
 		m += 2;
 	}
 
-	cout<<"Combining FFTs:\n";
-
+    // Combining FFTs
 	for(int i=0; i<10; i++)	{
 		fine_fft.insert(fine_fft.end(), course_ffts[i].begin(), course_ffts[i].end());				// Flattens the course_ffts vector
 	}
@@ -189,7 +187,7 @@ double calculate_pitch(vector <FFT> fft)	{
 
 	double pitch = max_it->freq;																	// Pitch is the frequency at the peak in the FFT
 
-	cout << "Pitch is " << pitch << "Hz.\n";
+	// cout << "Pitch is " << pitch << "Hz.\n";
 
 	// ofstream pitchFile("pitch_file.txt");														// Uncomment if you wish to write the pitch value to a file (Python support provided for reading)
  	// pitchFile << pitch << endl;
