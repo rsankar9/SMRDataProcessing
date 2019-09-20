@@ -18,74 +18,18 @@ int N = 512;																						// No. of samples considered
 int fs = 32000;																						// Sampling rate
 int lag = 200;																						// Lag from syllable onset
 
-class Annotation	{																					
-
+class Annotation	{
 	public:
 		int onset, offset;
 		char label;
-
 };
 
 class FFT	{
-
 	public:
 		double energy, freq;
-
 };
 
-vector <double> song; 
-vector <Annotation> labels; 
-
-bool FFT_cmp_f(const FFT &a, const FFT &b)	{
-	/* Function to compare two FFT objects using their frequency values. */ 
-
-	return a.freq < b.freq;
-}
-
-bool FFT_cmp_e(const FFT &a, const FFT &b)	{
-	/* Function to compare two FFT objects using their energy values. */ 
-	
-	return a.energy < b.energy;
-}
-
-bool FFT_cmp_v(const FFT &a, double v)	{
-	/* Function to compare an FFT object with a value. */ 
-
-	return a.freq < v;
-}
-
-void display_vector(vector<double> &v)	{
-	/* Display contents of a vector of type double. */
-
-	for (int i = 0; i < v.size(); i++)
-        cout<< v.at(i) <<' ';
-    cout<<endl;
-
-    return;
-}
-
-void display_vector(vector<FFT> &v)	{
-	/* Display contents of a vector of type FFT. */
-
-	for (int i = 0; i < v.size(); i++)
-        cout << v.at(i).freq <<' ' << v.at(i).energy << endl;
-    cout<<endl;
-
-    return;
-}
-
-void display_vector(vector<Annotation> &v)	{
-	/* Display contents of a vector of type Annotation. */
-
-	for (int i = 0; i < v.size(); i++)
-        cout << v.at(i).onset << ' ' << v.at(i).offset << ' ' << v.at(i).label << endl;
-    cout<<endl;
-
-    return;
-}
-
-
-void readfiles()	{
+void readfiles(vector <double> &song, vector <Annotation> &labels)	{
 	/* Read song file and labels. */
 
 	ifstream songfile("Combined_songs.txt");
@@ -121,14 +65,13 @@ void readfiles()	{
 	return;
 }
 
-vector <FFT> compute_fft(vector <double> &sample)	{
+vector <FFT> compute_fft(vector <double> &sample, size_t n)	{
 	/* Computes FFT using the FFTW library. */
 
-	int n = sample.size();
     fftw_complex in[n], out[n];
     vector <FFT> course_fft;
 
-    for(int i=0; i<n; i++)	{
+    for(size_t i=0; i<n; i++)	{
     	in[i][REAL] = sample[i];
     	in[i][IMAG] = 0;
     }
@@ -137,11 +80,12 @@ vector <FFT> compute_fft(vector <double> &sample)	{
     fftw_execute(plan);
     fftw_destroy_plan(plan);	
     fftw_cleanup();
-
-    for(int i=n/2, j=0; i<n; i++, j++)	{															// Constructs FFT object from FFTW output
+    
+    /* Note: FFTs in the FFTW output are stored with the positive frequencies in the first half of the array, and with the negative frequencies in the second half in reverse order. */
+    for(size_t i=0; i<n/2; i++)	{														            // Constructs FFT object from FFTW output
     	FFT curr;
-    	curr.energy = fabs(out[j][REAL]);															// Stores energy as absolute values of the real component of FFTW output
-    	curr.freq = (j*fs)/(double)n;																// Computes frequency from index of FFTW output
+    	curr.energy = fabs(out[i][REAL]);														    // Stores energy as absolute values of the real component of FFTW output
+    	curr.freq = ((double)(i)*fs)/n;																// Computes frequency in Hz from the index of FFTW output
     	course_fft.push_back(curr);
     }
 
@@ -151,52 +95,46 @@ vector <FFT> compute_fft(vector <double> &sample)	{
 vector <FFT> construct_fft(vector <double> &signal)	{
 	/* Builds 10 FFTs for a signal, each with 2 samples lesser, and combines them to obtain a finer FFT. */
 
-	vector < vector <FFT> > course_ffts;															// To store coarse FFTs of N, N-2, ... samples each
+	vector <FFT> course_fft;															            // Coarse FFT of N, or N-2, or ... samples
 	vector <FFT> fine_fft;																			
 	
-    // Building course FFTS
-	int m = 0;																						// Counter for no. of course FFTs, and for no. of samples considered
-	while(m < 20)	{
-		vector <double> sample ( signal.begin(), signal.end()-m );
-		course_ffts.push_back( compute_fft(sample) );
-		m += 2;
-	}
+    // Constructing 10 course FFTS
+    for(int m=0; m<20; m+=2)	{
+		course_fft = compute_fft(signal, N-m);
+        fine_fft.insert(fine_fft.end(), course_fft.begin(), course_fft.end());                      // Collects all the course_ffts
+    }
 
-    // Combining FFTs
-	for(int i=0; i<10; i++)	{
-		fine_fft.insert(fine_fft.end(), course_ffts[i].begin(), course_ffts[i].end());				// Flattens the course_ffts vector
-	}
-
-	sort(fine_fft.begin(), fine_fft.end(), FFT_cmp_f);												// Sorts the FFT according to the frequency value.
-
-	// cout<<"FINE FFT:\n";
-
-    // ofstream fftFile("fft_file.txt");															// Uncomment if you wish to write the FFT to a file (Python support provided for plotting)
-    // for (const FFT &e : fine_fft) fftFile << e.freq << ',' << e.energy << "\n";
-
+    // Sorts the combined FFT according to the frequency value
+	sort(fine_fft.begin(), fine_fft.end(), [](const FFT &a, const FFT &b) { return a.freq < b.freq;});
+    
+    /*
+    ofstream fftFile("fft_file.txt");															    // Uncomment if you wish to write the FFT to a file (Python support provided for plotting)
+    for (const FFT &e : fine_fft) fftFile << e.freq << ',' << e.energy << "\n";
+     */
+    
 	return fine_fft;
 }
 
 double calculate_pitch(vector <FFT> fft)	{
 
-	vector <FFT>::iterator range_beg = lower_bound(fft.begin(), fft.end(), 600.0, FFT_cmp_v);		// Restricts search range of lowest harmonic to a 30% variation around 900Hz
-	vector <FFT>::iterator range_end = lower_bound(fft.begin(), fft.end(), 1200.0, FFT_cmp_v);
+    // Restricts search range of lowest harmonic to a 30% variation around 900Hz
+	vector <FFT>::iterator range_beg = lower_bound(fft.begin(), fft.end(), 600.0, [](const FFT &a, const double v) { return a.freq < v;});
+	vector <FFT>::iterator range_end = lower_bound(fft.begin(), fft.end(), 1200.0, [](const FFT &a, const double v) { return a.freq < v;});
 
-	vector <FFT>::iterator max_it = max_element(range_beg, range_end, FFT_cmp_e);					// Finds FFT energy peak
-	int max_ind = distance(fft.begin(), max_it);													// Finds corresponding index
+	vector <FFT>::iterator max_it = max_element(range_beg, range_end, [](const FFT &a, const FFT &b) { return a.energy < b.energy;});					// Finds FFT energy peak
+	size_t max_ind = distance(fft.begin(), max_it);													// Finds corresponding index
 
 	double pitch = max_it->freq;																	// Pitch is the frequency at the peak in the FFT
 
-	// cout << "Pitch is " << pitch << "Hz.\n";
-
-	// ofstream pitchFile("pitch_file.txt");														// Uncomment if you wish to write the pitch value to a file (Python support provided for reading)
- 	// pitchFile << pitch << endl;
-
+    /*
+	ofstream pitchFile("pitch_file.txt");														    // Uncomment if you wish to write the pitch value to a file (Python support provided for reading)
+ 	pitchFile << pitch << endl;
+    */
 
 	return pitch;
 }
 
-void collect_pitches()	{
+void collect_pitches(vector <double> &song, vector <Annotation> &labels)	{
 	/* Processes occurences of syllable F. */
 
 	vector <double> pitches;																		// Stores pitch at each rendition of syllable F
@@ -206,13 +144,12 @@ void collect_pitches()	{
 		if( it->label == 'f')	{
 
 			vector <double> syllable ( song.begin()+it->onset, song.begin()+it->offset );			// A syllable is the signal between the onset and offset
-			if(syllable.size() < lag + N)	return;
+			if(syllable.size() < lag + N)	continue;
 			vector <double> signal ( syllable.begin()+lag, syllable.begin()+lag+N );				// FFT is computed with N samples starting at a lag from syllable onset. 
 			vector <FFT> fine_fft ( construct_fft(signal) );										// Computes the FFT
 			double pitch = calculate_pitch(fine_fft);												// Computes the pitch
 			pitches.push_back(pitch);
 		}
-
 	}
 
 	ofstream pitchFile("pitch_file.txt");															// Writes the pitch of each rendition of syllable F into a file, for further analysis using Python.
@@ -222,9 +159,12 @@ void collect_pitches()	{
 }
 
 int main () {
+    
+    vector <double> song;
+    vector <Annotation> labels;
 
-	readfiles();																					// Loads song signal and annotations
-	collect_pitches();																				// Calculates pitch at each rendition of syllable F
+	readfiles(song, labels);																		// Loads song signal and annotations
+	collect_pitches(song, labels);																	// Calculates pitch at each rendition of syllable F
 
 	return 0;
 }
