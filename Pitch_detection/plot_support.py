@@ -13,9 +13,8 @@ def read_fft():
     print("Loading fft.")
 
     fft_f, fft_e = np.loadtxt('fft_file.txt', delimiter=',', unpack=True)
-    pitch = np.loadtxt('pitch_file.txt')
 
-    return fft_f, fft_e, pitch
+    return fft_f, fft_e
 
 
 def read_pitches():
@@ -28,7 +27,7 @@ def read_pitches():
     return pitches
 
 
-def plot_fft(fft_freq, fft_fine, pitch_Hz, fs=32000):
+def plot_fft(fft_freq, fft_fine, pitch_Hz=0, fs=32000):
     """ Plots final FFT. """
 
     range_beg = np.abs(fft_freq-600).argmin()                                                   # Restricts search range for pitch 
@@ -86,8 +85,8 @@ def analyse_pitches(pitches, N, lag):
 
 
 
-# fft_f, fft_e, pitch = read_fft()                                                              # Uncomment if you wish to read and plot a single FFT and pitch
-# plot_fft(fft_f, fft_e, pitch)
+#fft_f, fft_e = read_fft()                                                              # Uncomment if you wish to read and plot a single FFT and pitch
+#plot_fft(fft_f, fft_e)
 
 pitches = read_pitches()                                                                        # Loads and analyses pitches calculated over multiple renditions of syllable F
 analyse_pitches(pitches, 512, 200)
